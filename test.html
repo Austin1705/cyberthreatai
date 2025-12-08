@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Threat Detection API Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #000000;
+            color: #ffffff;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        h1 {
+            color: #ffffff;
+            margin-bottom: 20px;
+            font-size: 2em;
+        }
+
+        p {
+            color: #999999;
+            margin-bottom: 30px;
+        }
+
+        button {
+            padding: 12px 18px;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.9em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: white;
+            position: relative;
+            overflow: hidden;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin: 8px 4px;
+        }
+
+        .btn-icon {
+            font-size: 1.2em;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.4));
+        }
+
+        .btn-text {
+            font-size: 0.85em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-guide {
+            background: rgba(156, 39, 176, 0.15);
+            border-color: rgba(156, 39, 176, 0.4);
+            color: #9c27b0;
+        }
+
+        .btn-guide:hover {
+            background: rgba(156, 39, 176, 0.25);
+            box-shadow: 0 0 20px rgba(156, 39, 176, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .btn-scan {
+            background: rgba(33, 150, 243, 0.15);
+            border-color: rgba(33, 150, 243, 0.4);
+            color: #2196f3;
+        }
+
+        .btn-scan:hover {
+            background: rgba(33, 150, 243, 0.25);
+            box-shadow: 0 0 20px rgba(33, 150, 243, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .btn-threat {
+            background: rgba(244, 67, 54, 0.15);
+            border-color: rgba(244, 67, 54, 0.4);
+            color: #f44336;
+        }
+
+        .btn-threat:hover {
+            background: rgba(244, 67, 54, 0.25);
+            box-shadow: 0 0 20px rgba(244, 67, 54, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .result {
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+        }
+
+        .normal {
+            border-color: rgba(76, 175, 80, 0.4);
+            background: rgba(76, 175, 80, 0.1);
+        }
+
+        .malicious {
+            border-color: rgba(244, 67, 54, 0.4);
+            background: rgba(244, 67, 54, 0.1);
+        }
+
+        .result strong {
+            color: #ffffff;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .result pre {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+            color: #4caf50;
+            font-size: 0.85em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🛡️ Threat Detection API Test</h1>
+        <p><strong>Server:</strong> http://127.0.0.1:5001</p>
+        
+        <button onclick="testHealth()" class="btn-guide"><span class="btn-icon">❓</span><span class="btn-text">Health</span></button>
+        <button onclick="testNormal()" class="btn-scan"><span class="btn-icon">🔍</span><span class="btn-text">Scan</span></button>
+        <button onclick="testMalicious()" class="btn-threat"><span class="btn-icon">⚡</span><span class="btn-text">Threat</span></button>
+        
+        <div id="results"></div>
+    </div>
+
+    <script>
+        function testHealth() {
+            fetch('http://127.0.0.1:5001/api/health')
+                .then(r => r.json())
+                .then(d => showResult('Health Check', d))
+                .catch(e => showResult('Error', {error: e.message}));
+        }
+
+        function testNormal() {
+            const data = {
+                packet_size: 256.5,
+                packet_rate: 10.2,
+                protocol_tcp: 1,
+                protocol_udp: 0,
+                protocol_icmp: 0,
+                src_port_common: 1,
+                dst_port_common: 1,
+                connection_duration: 45.3,
+                payload_entropy: 4.2,
+                retransmission_rate: 0.01
+            };
+            fetch('http://127.0.0.1:5001/api/analyze', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            })
+            .then(r => r.json())
+            .then(d => showResult('Normal Traffic', d, 'normal'))
+            .catch(e => showResult('Error', {error: e.message}));
+        }
+
+        function testMalicious() {
+            const data = {
+                packet_size: 512.0,
+                packet_rate: 95.5,
+                protocol_tcp: 1,
+                protocol_udp: 1,
+                protocol_icmp: 1,
+                src_port_common: 0,
+                dst_port_common: 0,
+                connection_duration: 3.2,
+                payload_entropy: 6.8,
+                retransmission_rate: 0.35
+            };
+            fetch('http://127.0.0.1:5001/api/analyze', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            })
+            .then(r => r.json())
+            .then(d => showResult('Malicious Traffic', d, 'malicious'))
+            .catch(e => showResult('Error', {error: e.message}));
+        }
+
+        function showResult(title, data, type) {
+            const results = document.getElementById('results');
+            const className = type || (data.threat_type === 'Malicious' ? 'malicious' : 'normal');
+            const html = `
+                <div class="result ${className}">
+                    <strong>${title}</strong><br>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                </div>
+            `;
+            results.innerHTML += html;
+        }
+    </script>
+</body>
+</html>

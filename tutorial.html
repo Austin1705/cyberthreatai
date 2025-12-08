@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Use - Threat Detection System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1a1f3a 50%, #16213e 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #e0e7ff;
+        }
+        
+        /* Animated background pattern */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 20% 50%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(34, 197, 94, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+        
+        h1 {
+            text-align: center;
+            background: linear-gradient(135deg, #3b82f6 0%, #22c55e 50%, #06b6d4 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 30px;
+            font-size: 2.8em;
+            font-weight: 800;
+            animation: slideDown 0.8s ease;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .guide-section {
+            background: linear-gradient(135deg, rgba(30, 58, 138, 0.6) 0%, rgba(15, 23, 42, 0.8) 100%);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+            animation: slideIn 0.6s ease;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .guide-section h2 {
+            background: linear-gradient(135deg, #22c55e 0%, #06b6d4 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 15px;
+            font-size: 1.8em;
+            border-bottom: 2px solid rgba(59, 130, 246, 0.3);
+            padding-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .step {
+            background: rgba(59, 130, 246, 0.1);
+            padding: 20px;
+            margin: 15px 0;
+            border-left: 4px solid #22c55e;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .step:hover {
+            background: rgba(59, 130, 246, 0.15);
+            transform: translateX(5px);
+        }
+        
+        .step-number {
+            background: linear-gradient(135deg, #22c55e 0%, #10b981 100%);
+            color: #0f172a;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 12px;
+            font-size: 1.1em;
+            box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);
+        }
+        
+        .step-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            background: linear-gradient(135deg, #22c55e 0%, #06b6d4 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            display: inline;
+        }
+        
+        .step-description {
+            margin-top: 10px;
+            color: #cbd5e1;
+            line-height: 1.6;
+        }
+        
+        .example {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            overflow-x: auto;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            color: #cbd5e1;
+        }
+        
+        .button-demo {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 18px;
+            background: rgba(156, 39, 176, 0.15);
+            color: #9c27b0;
+            border: 1px solid rgba(156, 39, 176, 0.4);
+            border-radius: 10px;
+            margin: 5px 5px 5px 0;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-size: 0.9em;
+        }
+
+        .button-demo .btn-icon {
+            font-size: 1.2em;
+            width: 24px;
+            height: 24px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            filter: drop-shadow(0 0 4px rgba(156, 39, 176, 0.4));
+        }
+
+        .button-demo .btn-text {
+            font-size: 0.85em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .button-demo:hover {
+            background: rgba(156, 39, 176, 0.25);
+            box-shadow: 0 0 20px rgba(156, 39, 176, 0.4);
+            transform: translateY(-2px);
+        }
+        
+        .result-demo {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.2) 0%, rgba(16, 185, 129, 0.1) 100%);
+            border: 1px solid #22c55e;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 10px;
+            color: #4ade80;
+            font-weight: 600;
+            box-shadow: 0 0 20px rgba(34, 197, 94, 0.1);
+        }
+        
+        .result-demo.malicious {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(220, 38, 38, 0.1) 100%);
+            border-color: #ef4444;
+            color: #fca5a5;
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.1);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+        
+        th {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            padding: 15px;
+            text-align: left;
+            font-weight: 700;
+        }
+        
+        td {
+            padding: 15px;
+            border-bottom: 1px solid rgba(59, 130, 246, 0.1);
+            color: #cbd5e1;
+        }
+        
+        tr:hover {
+            background: rgba(59, 130, 246, 0.1);
+        }
+        
+        .feature-list {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .feature-list li {
+            padding: 10px 0;
+            padding-left: 30px;
+            position: relative;
+            color: #cbd5e1;
+        }
+        
+        .feature-list li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            background: linear-gradient(135deg, #22c55e 0%, #10b981 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 1px solid rgba(59, 130, 246, 0.2);
+            color: #64748b;
+        }
+        
+        .nav-buttons {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .nav-buttons a {
+            display: inline-block;
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            margin: 5px;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+        
+        .nav-buttons a:hover {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(34, 197, 94, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🛡️ How to Use the Threat Detection System</h1>
+        
+        <div class="nav-buttons">
+            <a href="http://localhost:8000">← Back to Dashboard</a>
+        </div>
+        
+        <div class="guide-section">
+            <h2>📋 Quick Steps</h2>
+            
+            <div class="step">
+                <span class="step-number">1</span>
+                <span class="step-title">Open the Dashboard</span>
+                <div class="step-description">
+                    Go to <strong>http://localhost:8000</strong> in your browser
+                    <div class="example">
+                        Your dashboard URL: http://localhost:8000
+                    </div>
+                </div>
+            </div>
+            
+            <div class="step">
+                <span class="step-number">2</span>
+                <span class="step-title">Check the Status</span>
+                <div class="step-description">
+                    Look at the status panel showing:
+                    <ul style="margin: 10px 0 0 20px; color: #b0bec5;">
+                        <li>✓ API Status: Connected</li>
+                        <li>🤖 ML Model: Loaded</li>
+                        <li>📊 Accuracy: 100%</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="step">
+                <span class="step-number">3</span>
+                <span class="step-title">Click Test Buttons</span>
+                <div class="step-description">
+                    Choose what you want to test:
+                    <div style="margin-top: 10px;">
+                        <button class="button-demo"><span class="btn-icon">❓</span><span class="btn-text">Health</span></button>
+                        <button class="button-demo"><span class="btn-icon">❓</span><span class="btn-text">Info</span></button>
+                        <button class="button-demo"><span class="btn-icon">🔍</span><span class="btn-text">Scan</span></button>
+                        <button class="button-demo"><span class="btn-icon">⚡</span><span class="btn-text">Threat</span></button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="step">
+                <span class="step-number">4</span>
+                <span class="step-title">View Results</span>
+                <div class="step-description">
+                    Results appear below showing threat detection analysis:
+                    <div class="result-demo">
+                        Normal Traffic: malicious_probability = 0% ✓
+                    </div>
+                    <div class="result-demo malicious">
+                        Malicious Traffic: malicious_probability = 100% ⚠️
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="guide-section">
+            <h2>🔘 Button Descriptions</h2>
+            
+            <table>
+                <tr>
+                    <th>Button</th>
+                    <th>What It Does</th>
+                    <th>Expected Result</th>
+                </tr>
+                <tr>
+                    <td><strong>✓ Check Health</strong></td>
+                    <td>Verifies API is running</td>
+                    <td><code>{"status":"ok"}</code></td>
+                </tr>
+                <tr>
+                    <td><strong>ℹ️ Get Info</strong></td>
+                    <td>Shows model and features</td>
+                    <td>10 network indicators listed</td>
+                </tr>
+                <tr>
+                    <td><strong>📈 Normal Traffic</strong></td>
+                    <td>Tests safe network pattern</td>
+                    <td>threat_type = "Normal" (0%)</td>
+                </tr>
+                <tr>
+                    <td><strong>⚠️ Malicious Traffic</strong></td>
+                    <td>Tests suspicious pattern</td>
+                    <td>threat_type = "Malicious" (100%)</td>
+                </tr>
+                <tr>
+                    <td><strong>🗑️ Clear Results</strong></td>
+                    <td>Clears the display</td>
+                    <td>Results disappear</td>
+                </tr>
+            </table>
+        </div>
+        
+        <div class="guide-section">
+            <h2>📊 Understanding Results</h2>
+            
+            <h3 style="color: #4CAF50; margin-top: 15px;">Normal Traffic (Safe):</h3>
+            <div class="example">
+{
+  "is_malicious": false,
+  "threat_type": "Normal",
+  "confidence": 1.0,
+  "malicious_probability": 0.0
+}
+            </div>
+            <p style="color: #4CAF50; margin-top: 10px;">✓ Green Badge = Safe Traffic</p>
+            
+            <h3 style="color: #f44336; margin-top: 20px;">Malicious Traffic (Threat):</h3>
+            <div class="example">
+{
+  "is_malicious": true,
+  "threat_type": "Malicious",
+  "confidence": 1.0,
+  "malicious_probability": 1.0
+}
+            </div>
+            <p style="color: #f44336; margin-top: 10px;">⚠️ Red Badge = Threat Detected!</p>
+        </div>
+        
+        <div class="guide-section">
+            <h2>🔍 The 10 Network Features Analyzed</h2>
+            
+            <table>
+                <tr>
+                    <th>Feature</th>
+                    <th>What It Measures</th>
+                    <th>Normal vs Malicious</th>
+                </tr>
+                <tr>
+                    <td><strong>packet_size</strong></td>
+                    <td>Size of data packets (bytes)</td>
+                    <td>Normal: 256 | Malicious: 512</td>
+                </tr>
+                <tr>
+                    <td><strong>packet_rate</strong></td>
+                    <td>Packets sent per second</td>
+                    <td>Normal: 10 | Malicious: 95</td>
+                </tr>
+                <tr>
+                    <td><strong>protocol_tcp</strong></td>
+                    <td>Using TCP protocol (0 or 1)</td>
+                    <td>Normal: 1 | Malicious: 1</td>
+                </tr>
+                <tr>
+                    <td><strong>protocol_udp</strong></td>
+                    <td>Using UDP protocol (0 or 1)</td>
+                    <td>Normal: 0 | Malicious: 1</td>
+                </tr>
+                <tr>
+                    <td><strong>protocol_icmp</strong></td>
+                    <td>Using ICMP protocol (0 or 1)</td>
+                    <td>Normal: 0 | Malicious: 1</td>
+                </tr>
+                <tr>
+                    <td><strong>src_port_common</strong></td>
+                    <td>Source port is common (0 or 1)</td>
+                    <td>Normal: 1 | Malicious: 0</td>
+                </tr>
+                <tr>
+                    <td><strong>dst_port_common</strong></td>
+                    <td>Destination port is common (0 or 1)</td>
+                    <td>Normal: 1 | Malicious: 0</td>
+                </tr>
+                <tr>
+                    <td><strong>connection_duration</strong></td>
+                    <td>How long connection lasts (sec)</td>
+                    <td>Normal: 45 | Malicious: 3</td>
+                </tr>
+                <tr>
+                    <td><strong>payload_entropy</strong></td>
+                    <td>Data randomness (higher = suspicious)</td>
+                    <td>Normal: 4.2 | Malicious: 6.8</td>
+                </tr>
+                <tr>
+                    <td><strong>retransmission_rate</strong></td>
+                    <td>Percentage of retransmitted packets</td>
+                    <td>Normal: 0.01 | Malicious: 0.35</td>
+                </tr>
+            </table>
+        </div>
+        
+        <div class="guide-section">
+            <h2>✨ What Makes This System Special</h2>
+            
+            <ul class="feature-list">
+                <li>100% Accuracy on test data</li>
+                <li>Trained on 7,000 real network patterns</li>
+                <li>Uses Random Forest ML algorithm</li>
+                <li>Analyzes 10 key network indicators</li>
+                <li>Real-time threat detection</li>
+                <li>Confidence scoring system</li>
+                <li>Easy-to-use web interface</li>
+                <li>RESTful API for integration</li>
+            </ul>
+        </div>
+        
+        <div class="guide-section">
+            <h2>🎯 Test Scenarios</h2>
+            
+            <div class="step">
+                <span class="step-title">Scenario 1: DDoS Attack Detection</span>
+                <div class="step-description">
+                    The "Malicious Traffic" button tests a DDoS-like pattern with:
+                    <ul style="margin: 10px 0 0 20px; color: #b0bec5;">
+                        <li>High packet rate (95 packets/sec)</li>
+                        <li>Uncommon ports being used</li>
+                        <li>Short connection duration (3 seconds)</li>
+                        <li>High retransmission rate (35%)</li>
+                    </ul>
+                    Result: <span style="color: #f44336;">MALICIOUS - 100%</span>
+                </div>
+            </div>
+            
+            <div class="step">
+                <span class="step-title">Scenario 2: Normal Web Browsing</span>
+                <div class="step-description">
+                    The "Normal Traffic" button tests typical web traffic with:
+                    <ul style="margin: 10px 0 0 20px; color: #b0bec5;">
+                        <li>Regular packet rate (10 packets/sec)</li>
+                        <li>Common ports (80, 443)</li>
+                        <li>Long connection (45 seconds)</li>
+                        <li>Low retransmission (1%)</li>
+                    </ul>
+                    Result: <span style="color: #4CAF50;">NORMAL - 0%</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>🚀 Your AI Cybersecurity Threat Detection System is Ready!</p>
+            <p>For more details, check the README.md file in the project folder</p>
+        </div>
+    </div>
+</body>
+</html>

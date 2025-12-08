@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Cybersecurity Threat Detection System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
+            overflow-x: hidden;
+            background: #000000;
+            color: #ffffff;
+        }
+
+        /* ===== ANIMATED PIXELATED BACKGROUND ===== */
+        .background-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            overflow: hidden;
+            background: linear-gradient(135deg, #000000 0%, #1a1a1a 50%, #0d0d0d 100%);
+        }
+
+        .pixel-grid {
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            background-image: 
+                radial-gradient(circle, rgba(255, 255, 255, 0.4) 1px, transparent 1px),
+                radial-gradient(circle, rgba(255, 255, 255, 0.2) 0.5px, transparent 0.5px);
+            background-size: 50px 50px, 100px 100px;
+            background-position: 0 0, 25px 25px;
+            animation: movePixels 20s linear infinite;
+            opacity: 0.3;
+        }
+
+        .pixel-grid::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                radial-gradient(circle, rgba(255, 255, 255, 0.3) 1.5px, transparent 1.5px),
+                radial-gradient(circle, rgba(255, 255, 255, 0.15) 0.8px, transparent 0.8px);
+            background-size: 80px 80px, 120px 120px;
+            background-position: 10px 10px, 40px 40px;
+            animation: movePixelsReverse 30s linear infinite;
+            opacity: 0.25;
+        }
+
+        .pixel-grid::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                radial-gradient(circle, rgba(255, 255, 255, 0.25) 2px, transparent 2px);
+            background-size: 60px 60px;
+            background-position: 0 0;
+            animation: movePixels 25s linear infinite;
+            opacity: 0.2;
+        }
+
+        /* ===== INK TEXTURE OVERLAY ===== */
+        .ink-texture {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('bg.png');
+            background-repeat: repeat;
+            background-size: auto;
+            background-attachment: fixed;
+            opacity: 0.08;
+            pointer-events: none;
+            mix-blend-mode: screen;
+        }
+
+        @keyframes movePixels {
+            0% {
+                transform: translate(0, 0);
+            }
+            100% {
+                transform: translate(100px, 100px);
+            }
+        }
+
+        @keyframes movePixelsReverse {
+            0% {
+                transform: translate(0, 0);
+            }
+            100% {
+                transform: translate(-100px, -100px);
+            }
+        }
+
+        /* ===== THREADS CANVAS ===== */
+        .threads-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            z-index: 0;
+            opacity: 0;
+            display: none;
+        }
+
+        /* ===== CONTENT OVERLAY ===== */
+        .content-wrapper {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+        }
+
+        /* ===== HEADER ===== */
+        header {
+            width: 100%;
+            max-width: 1400px;
+            padding: 40px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            animation: slideDown 0.8s ease-out;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: 700;
+            color: #ffffff;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo::before {
+            content: '🛡';
+            font-size: 32px;
+            filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.5));
+        }
+
+        nav {
+            display: flex;
+            gap: 30px;
+        }
+
+        nav a {
+            color: #999999;
+            text-decoration: none;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            transition: color 0.3s ease;
+            font-weight: 500;
+        }
+
+        nav a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: #ffffff;
+            transition: width 0.3s ease;
+        }
+
+        nav a:hover {
+            color: #ffffff;
+        }
+
+        nav a:hover::after {
+            width: 100%;
+        }
+
+        /* ===== HERO SECTION ===== */
+        .hero {
+            width: 100%;
+            max-width: 1400px;
+            text-align: center;
+            padding: 60px 20px;
+            animation: fadeInUp 1s ease-out 0.3s backwards;
+        }
+
+        .hero h1 {
+            font-size: 72px;
+            font-weight: 800;
+            margin-bottom: 20px;
+            color: #ffffff;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            line-height: 1.2;
+            text-shadow: 0 0 30px rgba(255, 255, 255, 0.2);
+        }
+
+        .hero p {
+            font-size: 20px;
+            color: #999999;
+            margin-bottom: 40px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.6;
+            animation: fadeInUp 1s ease-out 0.5s backwards;
+            font-weight: 300;
+        }
+
+        .hero .cta-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            animation: fadeInUp 1s ease-out 0.7s backwards;
+        }
+
+        .btn {
+            padding: 16px 40px;
+            font-size: 16px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            border: none;
+            border-radius: 0px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            transition: left 0.3s ease;
+            z-index: -1;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: #ffffff;
+            color: #000000;
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 40px rgba(255, 255, 255, 0.5);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: #ffffff;
+            border: 2px solid #ffffff;
+            box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.05);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-3px);
+            box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.2), 0 0 30px rgba(255, 255, 255, 0.3);
+        }
+
+        /* ===== FEATURES ===== */
+        .features {
+            width: 100%;
+            max-width: 1400px;
+            padding: 60px 20px;
+            margin-top: 60px;
+            animation: fadeInUp 1s ease-out 0.9s backwards;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 0px;
+            padding: 30px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.6s ease;
+        }
+
+        .feature-card:hover::before {
+            left: 100%;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.4);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .feature-icon {
+            font-size: 40px;
+            margin-bottom: 15px;
+            display: inline-block;
+            filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.3));
+        }
+
+        .feature-card h3 {
+            font-size: 20px;
+            color: #ffffff;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
+        }
+
+        .feature-card p {
+            color: #999999;
+            line-height: 1.6;
+            font-size: 14px;
+            font-weight: 300;
+        }
+
+        /* ===== FOOTER ===== */
+        footer {
+            width: 100%;
+            max-width: 1400px;
+            padding: 40px 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+            color: #666666;
+            font-size: 12px;
+            animation: fadeInUp 1s ease-out 1.1s backwards;
+        }
+
+        footer p {
+            margin-bottom: 10px;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: #999999;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            color: #ffffff;
+        }
+
+        /* ===== ANIMATIONS ===== */
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes glow {
+            0%, 100% {
+                box-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
+            }
+            50% {
+                box-shadow: 0 0 40px rgba(212, 175, 55, 0.8);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 42px;
+            }
+
+            .hero p {
+                font-size: 16px;
+            }
+
+            nav {
+                gap: 15px;
+            }
+
+            nav a {
+                font-size: 12px;
+            }
+
+            .hero .cta-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .btn {
+                width: 100%;
+                max-width: 300px;
+            }
+        }
+
+        /* ===== SCROLL ANIMATIONS ===== */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.6s ease-out;
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated Pixelated Background -->
+    <div class="background-container">
+        <div class="pixel-grid"></div>
+        <div class="ink-texture"></div>
+    </div>
+
+    <!-- Threads Background Canvas -->
+    <canvas id="threadsCanvas" class="threads-container"></canvas>
+
+    <!-- Content Overlay -->
+    <div class="content-wrapper">
+        <!-- Header -->
+        <header>
+            <div class="logo">Threat Shield</div>
+            <nav>
+                <a href="/">Home</a>
+                <a href="#features">Features</a>
+                <a href="index.html">Dashboard</a>
+                <a href="pentest.html">Pen Test</a>
+            </nav>
+        </header>
+
+        <!-- Hero Section -->
+        <div class="hero">
+            <h1>AI-Powered Network Defense</h1>
+            <p>Real-time threat detection and penetration testing with machine learning precision. Secure your infrastructure with advanced cybersecurity intelligence.</p>
+            <div class="cta-buttons">
+                <a href="/index.html" class="btn btn-primary">Launch Dashboard</a>
+                <a href="/pentest.html" class="btn btn-secondary">Pen Test Tools</a>
+            </div>
+        </div>
+
+        <!-- Features Section -->
+        <div class="features" id="features">
+            <div class="features-grid">
+                <div class="feature-card fade-in">
+                    <div class="feature-icon">🛡️</div>
+                    <h3>Threat Detection</h3>
+                    <p>AI-powered real-time analysis of network traffic to identify malicious patterns and anomalies instantly.</p>
+                </div>
+                <div class="feature-card fade-in">
+                    <div class="feature-icon">🔍</div>
+                    <h3>Penetration Testing</h3>
+                    <p>Comprehensive vulnerability assessment across 10 security categories with detailed recommendations.</p>
+                </div>
+                <div class="feature-card fade-in">
+                    <div class="feature-icon">📊</div>
+                    <h3>Live Analytics</h3>
+                    <p>Interactive dashboards with confidence scoring, severity ratings, and comprehensive threat reports.</p>
+                </div>
+                <div class="feature-card fade-in">
+                    <div class="feature-icon">⚡</div>
+                    <h3>Fast Processing</h3>
+                    <p>Lightning-fast batch processing and real-time API responses for immediate threat assessment.</p>
+                </div>
+                <div class="feature-card fade-in">
+                    <div class="feature-icon">🎯</div>
+                    <h3>Precision Scoring</h3>
+                    <p>Machine learning models trained on extensive datasets for accurate threat classification.</p>
+                </div>
+                <div class="feature-card fade-in">
+                    <div class="feature-icon">🔐</div>
+                    <h3>Enterprise Security</h3>
+                    <p>Bank-grade encryption and secure data handling for mission-critical infrastructure protection.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer>
+            <p>&copy; 2025 AI Cybersecurity Threat Detection System. All rights reserved.</p>
+            <div class="footer-links">
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms of Service</a>
+                <a href="#">Documentation</a>
+                <a href="#">Support</a>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // ===== THREADS SHADER ANIMATION =====
+        const canvas = document.getElementById('threadsCanvas');
+        const gl = canvas.getContext('webgl2', { alpha: true });
+
+        if (!gl) {
+            console.error('WebGL2 not supported, falling back to WebGL');
+            canvas.style.display = 'none';
+        } else {
+            // Set canvas size
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                gl.viewport(0, 0, canvas.width, canvas.height);
+            }
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+
+            // Vertex Shader
+            const vertexShader = `#version 300 es
+            in vec2 position;
+            void main() {
+                gl_Position = vec4(position, 0.0, 1.0);
+            }`;
+
+            // Fragment Shader
+            const fragmentShader = `#version 300 es
+            precision highp float;
+
+            uniform float iTime;
+            uniform vec3 iResolution;
+            uniform vec3 uColor;
+            uniform float uAmplitude;
+            uniform float uDistance;
+            uniform vec2 uMouse;
+
+            #define PI 3.1415926538
+
+            const int u_line_count = 40;
+            const float u_line_width = 7.0;
+            const float u_line_blur = 10.0;
+
+            float Perlin2D(vec2 P) {
+                vec2 Pi = floor(P);
+                vec4 Pf_Pfmin1 = P.xyxy - vec4(Pi, Pi + 1.0);
+                vec4 Pt = vec4(Pi.xy, Pi.xy + 1.0);
+                Pt = Pt - floor(Pt * (1.0 / 71.0)) * 71.0;
+                Pt += vec2(26.0, 161.0).xyxy;
+                Pt *= Pt;
+                Pt = Pt.xzxz * Pt.yyww;
+                vec4 hash_x = fract(Pt * (1.0 / 951.135664));
+                vec4 hash_y = fract(Pt * (1.0 / 642.949883));
+                vec4 grad_x = hash_x - 0.49999;
+                vec4 grad_y = hash_y - 0.49999;
+                vec4 grad_results = inversesqrt(grad_x * grad_x + grad_y * grad_y)
+                    * (grad_x * Pf_Pfmin1.xzxz + grad_y * Pf_Pfmin1.yyww);
+                grad_results *= 1.4142135623730950;
+                vec2 blend = Pf_Pfmin1.xy * Pf_Pfmin1.xy * Pf_Pfmin1.xy
+                           * (Pf_Pfmin1.xy * (Pf_Pfmin1.xy * 6.0 - 15.0) + 10.0);
+                vec4 blend2 = vec4(blend, vec2(1.0 - blend));
+                return dot(grad_results, blend2.zxzx * blend2.wwyy);
+            }
+
+            float pixel(float count, vec2 resolution) {
+                return (1.0 / max(resolution.x, resolution.y)) * count;
+            }
+
+            float lineFn(vec2 st, float width, float perc, float offset, vec2 mouse, float time, float amplitude, float distance) {
+                float split_offset = (perc * 0.4);
+                float split_point = 0.1 + split_offset;
+
+                float amplitude_normal = smoothstep(split_point, 0.7, st.x);
+                float amplitude_strength = 0.5;
+                float finalAmplitude = amplitude_normal * amplitude_strength
+                                       * amplitude * (1.0 + (mouse.y - 0.5) * 0.2);
+
+                float time_scaled = time / 10.0 + (mouse.x - 0.5) * 1.0;
+                float blur = smoothstep(split_point, split_point + 0.05, st.x) * perc;
+
+                float xnoise = mix(
+                    Perlin2D(vec2(time_scaled, st.x + perc) * 2.5),
+                    Perlin2D(vec2(time_scaled, st.x + time_scaled) * 3.5) / 1.5,
+                    st.x * 0.3
+                );
+
+                float y = 0.5 + (perc - 0.5) * distance + xnoise / 2.0 * finalAmplitude;
+
+                float line_start = smoothstep(
+                    y + (width / 2.0) + (u_line_blur * pixel(1.0, iResolution.xy) * blur),
+                    y,
+                    st.y
+                );
+
+                float line_end = smoothstep(
+                    y,
+                    y - (width / 2.0) - (u_line_blur * pixel(1.0, iResolution.xy) * blur),
+                    st.y
+                );
+
+                return clamp(
+                    (line_start - line_end) * (1.0 - smoothstep(0.0, 1.0, pow(perc, 0.3))),
+                    0.0,
+                    1.0
+                );
+            }
+
+            void main() {
+                vec2 fragCoord = gl_FragCoord.xy;
+                vec2 uv = fragCoord / iResolution.xy;
+
+                float line_strength = 1.0;
+                for (int i = 0; i < u_line_count; i++) {
+                    float p = float(i) / float(u_line_count);
+                    line_strength *= (1.0 - lineFn(
+                        uv,
+                        u_line_width * pixel(1.0, iResolution.xy) * (1.0 - p),
+                        p,
+                        (PI * 1.0) * p,
+                        uMouse,
+                        iTime,
+                        uAmplitude,
+                        uDistance
+                    ));
+                }
+
+                float colorVal = 1.0 - line_strength;
+                gl_FragColor = vec4(uColor * colorVal, colorVal);
+            }`;
+
+            // Compile shaders
+            function compileShader(source, type) {
+                const shader = gl.createShader(type);
+                gl.shaderSource(shader, source);
+                gl.compileShader(shader);
+                if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+                    console.error(gl.getShaderInfoLog(shader));
+                    gl.deleteShader(shader);
+                    return null;
+                }
+                return shader;
+            }
+
+            const vShader = compileShader(vertexShader, gl.VERTEX_SHADER);
+            const fShader = compileShader(fragmentShader, gl.FRAGMENT_SHADER);
+
+            if (!vShader || !fShader) {
+                console.error('Failed to compile shaders');
+                canvas.style.display = 'none';
+            } else {
+                // Link program
+                const program = gl.createProgram();
+                gl.attachShader(program, vShader);
+                gl.attachShader(program, fShader);
+                gl.linkProgram(program);
+
+                if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+                    console.error(gl.getProgramInfoLog(program));
+                    canvas.style.display = 'none';
+                } else {
+                    gl.useProgram(program);
+
+                    // Setup geometry (full screen triangle)
+                    const positionBuffer = gl.createBuffer();
+                    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+                    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+                        -1, -1,
+                        3, -1,
+                        -1, 3
+                    ]), gl.STATIC_DRAW);
+
+                    const positionLoc = gl.getAttribLocation(program, 'position');
+                    gl.enableVertexAttribArray(positionLoc);
+                    gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0);
+
+                    // Get uniform locations
+                    const timeUniform = gl.getUniformLocation(program, 'iTime');
+                    const resolutionUniform = gl.getUniformLocation(program, 'iResolution');
+                    const colorUniform = gl.getUniformLocation(program, 'uColor');
+                    const amplitudeUniform = gl.getUniformLocation(program, 'uAmplitude');
+                    const distanceUniform = gl.getUniformLocation(program, 'uDistance');
+                    const mouseUniform = gl.getUniformLocation(program, 'uMouse');
+
+                    // Set initial uniforms
+                    gl.uniform3f(colorUniform, 0.85, 0.65, 0.2); // Gold color
+                    gl.uniform1f(amplitudeUniform, 1.0);
+                    gl.uniform1f(distanceUniform, 0.1);
+
+                    // Mouse tracking
+                    let currentMouse = [0.5, 0.5];
+                    let targetMouse = [0.5, 0.5];
+
+                    document.addEventListener('mousemove', (e) => {
+                        const x = e.clientX / canvas.width;
+                        const y = 1.0 - (e.clientY / canvas.height);
+                        targetMouse = [x, y];
+                    });
+
+                    document.addEventListener('mouseleave', () => {
+                        targetMouse = [0.5, 0.5];
+                    });
+
+                    // Animation loop
+                    let startTime = Date.now();
+
+                    function animate() {
+                        const elapsed = (Date.now() - startTime) / 1000;
+
+                        // Smooth mouse movement
+                        const smoothing = 0.05;
+                        currentMouse[0] += smoothing * (targetMouse[0] - currentMouse[0]);
+                        currentMouse[1] += smoothing * (targetMouse[1] - currentMouse[1]);
+
+                        // Update uniforms
+                        gl.uniform1f(timeUniform, elapsed);
+                        gl.uniform3f(resolutionUniform, canvas.width, canvas.height, canvas.width / canvas.height);
+                        gl.uniform2f(mouseUniform, currentMouse[0], currentMouse[1]);
+
+                        // Clear and render
+                        gl.clearColor(0, 0, 0, 0);
+                        gl.clear(gl.COLOR_BUFFER_BIT);
+                        gl.drawArrays(gl.TRIANGLES, 0, 3);
+
+                        requestAnimationFrame(animate);
+                    }
+
+                    animate();
+                }
+            }
+        }
+
+        // ===== CURSOR-FOLLOWING BACKGROUND ANIMATION =====
+        const bgContainer = document.querySelector('.background-container');
+        const pixelGrid = document.querySelector('.pixel-grid');
+        const inkTexture = document.querySelector('.ink-texture');
+        
+        let mouseX = 0;
+        let mouseY = 0;
+        let targetX = 0;
+        let targetY = 0;
+        
+        document.addEventListener('mousemove', (e) => {
+            targetX = (e.clientX / window.innerWidth - 0.5) * 20;
+            targetY = (e.clientY / window.innerHeight - 0.5) * 20;
+        });
+        
+        document.addEventListener('mouseleave', () => {
+            targetX = 0;
+            targetY = 0;
+        });
+        
+        function animateBackground() {
+            // Smooth interpolation
+            mouseX += (targetX - mouseX) * 0.1;
+            mouseY += (targetY - mouseY) * 0.1;
+            
+            // Move in opposite direction (parallax effect)
+            if (pixelGrid) {
+                pixelGrid.style.transform = `translate(${-mouseX}px, ${-mouseY}px)`;
+            }
+            if (inkTexture) {
+                inkTexture.style.transform = `translate(${mouseX * 0.5}px, ${mouseY * 0.5}px)`;
+            }
+            
+            requestAnimationFrame(animateBackground);
+        }
+        
+        animateBackground();
+
+        // ===== SCROLL ANIMATIONS =====
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.fade-in').forEach(el => {
+            observer.observe(el);
+        });
+
+        // ===== SMOOTH SCROLL =====
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                const href = this.getAttribute('href');
+                if (href === '#') return;
+                
+                e.preventDefault();
+                const target = document.querySelector(href);
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+{
+  "smtp_server": "smtp.gmail.com",
+  "smtp_port": 587,
+  "sender_email": "your-email@gmail.com",
+  "sender_password": "your-app-password",
+  "recipients": [
+    "admin@example.com",
+    "security@example.com"
+  ],
+  "notes": "For Gmail: Enable 2FA and create an App Password at https://myaccount.google.com/apppasswords"
+}

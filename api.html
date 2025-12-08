@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Console - Threat Detection</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1a1f3a 50%, #16213e 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 0;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 20% 50%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 80%, rgba(34, 197, 94, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 58, 138, 0.9) 100%);
+            border-bottom: 1px solid rgba(59, 130, 246, 0.3);
+            backdrop-filter: blur(10px);
+            padding: 0 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .nav-content {
+            max-width: 1600px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+        }
+
+        .logo {
+            font-size: 1.3em;
+            font-weight: 700;
+            background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            cursor: pointer;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 25px;
+            list-style: none;
+        }
+
+        .nav-menu a {
+            color: #94a3b8;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            padding: 8px 12px;
+            border-radius: 6px;
+        }
+
+        .nav-menu a:hover,
+        .nav-menu a.active {
+            color: #06b6d4;
+            background: rgba(6, 182, 212, 0.1);
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header {
+            margin-bottom: 40px;
+            animation: slideDown 0.6s ease;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #3b82f6 0%, #22c55e 50%, #06b6d4 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 700;
+        }
+
+        .console-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .console-panel {
+            background: linear-gradient(135deg, rgba(30, 58, 138, 0.6) 0%, rgba(15, 23, 42, 0.8) 100%);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            backdrop-filter: blur(20px);
+        }
+
+        .console-panel h3 {
+            margin-bottom: 20px;
+            color: #06b6d4;
+            font-size: 1.2em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #94a3b8;
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 8px;
+            padding: 12px;
+            color: #e0e0e0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            resize: vertical;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #06b6d4;
+            box-shadow: 0 0 10px rgba(6, 182, 212, 0.2);
+        }
+
+        .form-group textarea {
+            min-height: 120px;
+        }
+
+        .endpoint-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .endpoint-btn {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-size: 0.9em;
+            color: white;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .endpoint-btn.get {
+            background: rgba(156, 39, 176, 0.15);
+            border: 1px solid rgba(156, 39, 176, 0.4);
+            color: #9c27b0;
+        }
+
+        .endpoint-btn.post {
+            background: rgba(33, 150, 243, 0.15);
+            border: 1px solid rgba(33, 150, 243, 0.4);
+            color: #2196f3;
+        }
+
+        .endpoint-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+        }
+
+        .send-btn {
+            width: 100%;
+            padding: 12px;
+            background: rgba(76, 175, 80, 0.15);
+            border: 1px solid rgba(76, 175, 80, 0.4);
+            color: #4caf50;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .send-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 20px rgba(76, 175, 80, 0.4);
+        }
+
+        .response-panel {
+            background: linear-gradient(135deg, rgba(30, 58, 138, 0.6) 0%, rgba(15, 23, 42, 0.8) 100%);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            backdrop-filter: blur(20px);
+        }
+
+        .response-panel h3 {
+            margin-bottom: 20px;
+            color: #06b6d4;
+            font-size: 1.2em;
+        }
+
+        .response-output {
+            background: #0f172a;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 8px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            color: #06b6d4;
+            max-height: 400px;
+            overflow-y: auto;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            font-size: 0.9em;
+        }
+
+        .status-indicator.success {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+        }
+
+        .status-indicator.error {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+
+        .status-indicator.pending {
+            background: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+        }
+
+        .examples-section {
+            background: linear-gradient(135deg, rgba(30, 58, 138, 0.6) 0%, rgba(15, 23, 42, 0.8) 100%);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            backdrop-filter: blur(20px);
+        }
+
+        .examples-section h3 {
+            margin-bottom: 20px;
+            color: #06b6d4;
+            font-size: 1.2em;
+        }
+
+        .example-item {
+            background: rgba(15, 23, 42, 0.5);
+            border-left: 4px solid #06b6d4;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+        }
+
+        .example-item h4 {
+            color: #3b82f6;
+            margin-bottom: 10px;
+        }
+
+        .example-item code {
+            background: #0f172a;
+            padding: 10px;
+            border-radius: 4px;
+            display: block;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            color: #06b6d4;
+            overflow-x: auto;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .console-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 1.8em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-content">
+            <div class="logo">🛡️ ThreatDetect</div>
+            <ul class="nav-menu">
+                <li><a href="index.html">📊 Dashboard</a></li>
+                <li><a href="analytics.html">📈 Analytics</a></li>
+                <li><a href="threats.html">⚠️ Threats</a></li>
+                <li><a href="scanner.html">🌐 Scanner</a></li>
+                <li><a href="pentest.html">🔓 Pen Test</a></li>
+                <li><a href="api.html" class="active">🔌 API</a></li>
+                <li><a href="admin.html">⚙️ Admin</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="header">
+            <h1>🔌 API Console</h1>
+            <p>Interactive API testing and debugging tool</p>
+        </div>
+
+        <div class="console-grid">
+            <div class="console-panel">
+                <h3>Request Configuration</h3>
+                
+                <div class="endpoint-buttons">
+                    <button class="endpoint-btn get" onclick="setEndpoint('health')"><span class="btn-icon">❓</span><span class="btn-text">Health</span></button>
+                    <button class="endpoint-btn get" onclick="setEndpoint('info')"><span class="btn-icon">❓</span><span class="btn-text">Info</span></button>
+                    <button class="endpoint-btn post" onclick="setEndpoint('analyze')"><span class="btn-icon">🔍</span><span class="btn-text">Analyze</span></button>
+                    <button class="endpoint-btn post" onclick="setEndpoint('batch')"><span class="btn-icon">📦</span><span class="btn-text">Batch</span></button>
+                </div>
+
+                <div class="form-group">
+                    <label>Endpoint:</label>
+                    <input type="text" id="endpoint" value="/api/health" readonly>
+                </div>
+
+                <div class="form-group">
+                    <label>Request Body (JSON):</label>
+                    <textarea id="requestBody" placeholder='{"packet_size": 256, "packet_rate": 10, ...}'>{
+  "packet_size": 256.5,
+  "packet_rate": 10.2,
+  "protocol_tcp": 1,
+  "protocol_udp": 0,
+  "protocol_icmp": 0,
+  "src_port_common": 1,
+  "dst_port_common": 1,
+  "connection_duration": 45.3,
+  "payload_entropy": 4.2,
+  "retransmission_rate": 0.01
+}</textarea>
+                </div>
+
+                <button class="send-btn" onclick="sendRequest()"><span class="btn-icon">📤</span><span class="btn-text">Send Request</span></button>
+            </div>
+
+            <div class="response-panel">
+                <h3>Response</h3>
+                <div id="statusIndicator"></div>
+                <div class="response-output" id="responseOutput">Waiting for request...</div>
+            </div>
+        </div>
+
+        <div class="examples-section">
+            <h3>📚 API Examples</h3>
+            
+            <div class="example-item">
+                <h4>1. Health Check</h4>
+                <code>GET /api/health
+Response: {"status": "ok"}</code>
+            </div>
+
+            <div class="example-item">
+                <h4>2. Service Info</h4>
+                <code>GET /api/info
+Response: {"model": "Random Forest", "features": 10, ...}</code>
+            </div>
+
+            <div class="example-item">
+                <h4>3. Analyze Single Sample</h4>
+                <code>POST /api/analyze
+Body: {packet_size, packet_rate, ...}
+Response: {is_malicious, confidence, threat_type, ...}</code>
+            </div>
+
+            <div class="example-item">
+                <h4>4. Batch Analysis</h4>
+                <code>POST /api/batch-analyze
+Body: {samples: [{...}, {...}]}
+Response: {results: [{...}, {...}]}</code>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://127.0.0.1:5001';
+
+        function setEndpoint(type) {
+            const endpoints = {
+                'health': '/api/health',
+                'info': '/api/info',
+                'analyze': '/api/analyze',
+                'batch': '/api/batch-analyze'
+            };
+            document.getElementById('endpoint').value = endpoints[type];
+        }
+
+        async function sendRequest() {
+            const endpoint = document.getElementById('endpoint').value;
+            const requestBody = document.getElementById('requestBody').value;
+            const statusIndicator = document.getElementById('statusIndicator');
+            const responseOutput = document.getElementById('responseOutput');
+
+            statusIndicator.innerHTML = '<div class="status-indicator pending">⏳ Sending request...</div>';
+            responseOutput.textContent = 'Loading...';
+
+            try {
+                const isPostRequest = endpoint.includes('analyze');
+                const options = {
+                    method: isPostRequest ? 'POST' : 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                };
+
+                if (isPostRequest) {
+                    options.body = requestBody;
+                }
+
+                const response = await fetch(API_URL + endpoint, options);
+                const data = await response.json();
+
+                statusIndicator.innerHTML = `<div class="status-indicator success">✓ Success (${response.status})</div>`;
+                responseOutput.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                statusIndicator.innerHTML = `<div class="status-indicator error">✗ Error</div>`;
+                responseOutput.textContent = `Error: ${error.message}`;
+            }
+        }
+
+        // Initialize
+        window.addEventListener('load', () => {
+            console.log('API Console loaded');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Website Security Scanner - ThreatDetect</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #000000;
+            color: #e2e8f0;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.03) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.02) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Navigation Bar */
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: linear-gradient(90deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 58, 138, 0.9) 100%);
+            border-bottom: 1px solid rgba(59, 130, 246, 0.3);
+            backdrop-filter: blur(20px);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #3b82f6;
+            text-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-menu a {
+            color: #e2e8f0;
+            text-decoration: none;
+            transition: 0.3s ease;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+        }
+
+        .nav-menu a:hover {
+            background: rgba(59, 130, 246, 0.2);
+            color: #3b82f6;
+        }
+
+        .nav-menu a.active {
+            background: rgba(59, 130, 246, 0.3);
+            color: #3b82f6;
+            border: 1px solid rgba(59, 130, 246, 0.5);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .page-title {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #3b82f6, #06b6d4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .page-subtitle {
+            color: #94a3b8;
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+        }
+
+        /* Scanner Section */
+        .scanner-section {
+            background: linear-gradient(135deg, rgba(30, 58, 138, 0.6) 0%, rgba(15, 23, 42, 0.8) 100%);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 16px;
+            padding: 2rem;
+            backdrop-filter: blur(20px);
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .input-group {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .input-group input {
+            flex: 1;
+            padding: 1rem;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 8px;
+            color: #e2e8f0;
+            font-size: 1rem;
+            transition: 0.3s ease;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            background: rgba(15, 23, 42, 0.9);
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.2);
+        }
+
+        .button {
+            padding: 12px 18px;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.9em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: white;
+            position: relative;
+            overflow: hidden;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(33, 150, 243, 0.15);
+            color: #2196f3;
+            border-color: rgba(33, 150, 243, 0.4);
+        }
+
+        .button:hover {
+            background: rgba(33, 150, 243, 0.25);
+            box-shadow: 0 0 20px rgba(33, 150, 243, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .button:active {
+            transform: translateY(0);
+        }
+
+        .button.secondary {
+            background: rgba(158, 158, 158, 0.15);
+            color: #9e9e9e;
+            border-color: rgba(158, 158, 158, 0.4);
+        }
+
+        .button.secondary:hover {
+            background: rgba(158, 158, 158, 0.25);
+            box-shadow: 0 0 20px rgba(158, 158, 158, 0.4);
+        }
+
+        .button.danger {
+            background: rgba(244, 67, 54, 0.15);
+            color: #f44336;
+            border-color: rgba(244, 67, 54, 0.4);
+        }
+
+        .button.danger:hover {
+            background: rgba(244, 67, 54, 0.25);
+            box-shadow: 0 0 20px rgba(244, 67, 54, 0.4);
+        }
+
+        .button.success {
+            background: rgba(76, 175, 80, 0.15);
+            color: #4caf50;
+            border-color: rgba(76, 175, 80, 0.4);
+        }
+
+        .button.success:hover {
+            background: rgba(76, 175, 80, 0.25);
+            box-shadow: 0 0 20px rgba(76, 175, 80, 0.4);
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(59, 130, 246, 0.3);
+            border-top: 3px solid #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 0.5rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Results Section */
+        .results-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .result-card {
+            background: linear-gradient(135deg, rgba(30, 58, 138, 0.6) 0%, rgba(15, 23, 42, 0.8) 100%);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            backdrop-filter: blur(20px);
+            transition: 0.3s ease;
+        }
+
+        .result-card:hover {
+            box-shadow: 0 8px 32px rgba(59, 130, 246, 0.2);
+            transform: translateY(-4px);
+        }
+
+        .threat-badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-weight: 600;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+        }
+
+        .threat-safe {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+            border: 1px solid #22c55e;
+        }
+
+        .threat-low {
+            background: rgba(59, 130, 246, 0.2);
+            color: #3b82f6;
+            border: 1px solid #3b82f6;
+        }
+
+        .threat-medium {
+            background: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+            border: 1px solid #f59e0b;
+        }
+
+        .threat-high {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid #ef4444;
+        }
+
+        .threat-critical {
+            background: rgba(139, 0, 0, 0.3);
+            color: #ff6b6b;
+            border: 1px solid #ff6b6b;
+        }
+
+        .threat-score {
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 1rem 0;
+        }
+
+        .threat-score-low {
+            color: #22c55e;
+        }
+
+        .threat-score-medium {
+            color: #f59e0b;
+        }
+
+        .threat-score-high {
+            color: #ef4444;
+        }
+
+        .vulnerability-list {
+            margin-top: 1.5rem;
+        }
+
+        .vulnerability-item {
+            background: rgba(0, 0, 0, 0.3);
+            border-left: 4px solid #ef4444;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            border-radius: 4px;
+        }
+
+        .vulnerability-item.high {
+            border-left-color: #ef4444;
+        }
+
+        .vulnerability-item.medium {
+            border-left-color: #f59e0b;
+        }
+
+        .vulnerability-item.low {
+            border-left-color: #3b82f6;
+        }
+
+        .vulnerability-type {
+            font-weight: 600;
+            color: #e2e8f0;
+            margin-bottom: 0.25rem;
+        }
+
+        .vulnerability-description {
+            font-size: 0.9rem;
+            color: #cbd5e1;
+            margin-bottom: 0.25rem;
+        }
+
+        .vulnerability-recommendation {
+            font-size: 0.85rem;
+            color: #94a3b8;
+            font-style: italic;
+        }
+
+        /* Recommendations Section */
+        .recommendations-section {
+            background: linear-gradient(135deg, rgba(30, 58, 138, 0.6) 0%, rgba(15, 23, 42, 0.8) 100%);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 16px;
+            padding: 2rem;
+            backdrop-filter: blur(20px);
+            margin-top: 2rem;
+        }
+
+        .recommendations-section h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: #06b6d4;
+        }
+
+        .recommendation-item {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            border-radius: 8px;
+            border-left: 4px solid #06b6d4;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .recommendation-item:before {
+            content: "✓";
+            color: #22c55e;
+            font-size: 1.5rem;
+            font-weight: bold;
+            min-width: 30px;
+        }
+
+        /* Statistics Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, rgba(30, 58, 138, 0.6) 0%, rgba(15, 23, 42, 0.8) 100%);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #3b82f6;
+            margin: 0.5rem 0;
+        }
+
+        .stat-label {
+            color: #94a3b8;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+        }
+
+        /* History Table */
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1.5rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .history-table thead {
+            background: rgba(59, 130, 246, 0.2);
+            border-bottom: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .history-table th {
+            padding: 1rem;
+            text-align: left;
+            color: #3b82f6;
+            font-weight: 600;
+        }
+
+        .history-table td {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(59, 130, 246, 0.1);
+        }
+
+        .history-table tr:hover {
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 16px;
+            padding: 2rem;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-close {
+            float: right;
+            font-size: 2rem;
+            font-weight: bold;
+            color: #94a3b8;
+            cursor: pointer;
+        }
+
+        .modal-close:hover {
+            color: #e2e8f0;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .page-title {
+                font-size: 1.8rem;
+            }
+
+            .input-group {
+                flex-direction: column;
+            }
+
+            .nav-menu {
+                gap: 1rem;
+                font-size: 0.9rem;
+            }
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .error-message {
+            background: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 4px solid #ef4444;
+            margin-bottom: 1rem;
+        }
+
+        .success-message {
+            background: rgba(34, 197, 94, 0.2);
+            color: #86efac;
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 4px solid #22c55e;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="logo">🛡️ ThreatDetect</div>
+        <ul class="nav-menu">
+            <li><a href="index.html">📊 Dashboard</a></li>
+            <li><a href="analytics.html">📈 Analytics</a></li>
+            <li><a href="threats.html">⚠️ Threats</a></li>
+            <li><a href="scanner.html" class="active">🌐 Website Scanner</a></li>
+            <li><a href="pentest.html">🔓 Pen Test</a></li>
+            <li><a href="api.html">🔌 API</a></li>
+            <li><a href="admin.html">⚙️ Admin</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <h1 class="page-title">🌐 Website Security Scanner</h1>
+        <p class="page-subtitle">Scan websites for threats, vulnerabilities, and security issues</p>
+
+        <!-- Scanner Input -->
+        <div class="scanner-section">
+            <h3 style="color: #06b6d4; margin-bottom: 1rem;">Enter Website URL to Scan</h3>
+            <div class="input-group">
+                <input 
+                    type="text" 
+                    id="websiteUrl" 
+                    placeholder="https://www.example.com"
+                    onkeypress="if(event.key === 'Enter') scanWebsite()"
+                >
+                <button class="button" onclick="scanWebsite()">
+                    <span class="btn-icon">🔍</span>
+                    <span id="scanBtnText">Scan Website</span>
+                    <span id="scanSpinner" class="spinner" style="display:none;"></span>
+                </button>
+            </div>
+            <div id="scanMessage" style="margin-top: 1rem;"></div>
+        </div>
+
+        <!-- Results Section -->
+        <div id="resultsSection" style="display:none;">
+            <h2 style="color: #06b6d4; margin-bottom: 1.5rem;">Scan Results</h2>
+            
+            <!-- Statistics -->
+            <div class="stats-grid" id="statsGrid"></div>
+
+            <!-- Result Card -->
+            <div class="result-card">
+                <h3 id="resultUrl" style="color: #3b82f6; margin-bottom: 1rem;"></h3>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                    <div>
+                        <p style="color: #94a3b8; margin-bottom: 0.5rem;">Threat Level</p>
+                        <div id="threatBadge"></div>
+                        
+                        <p style="color: #94a3b8; margin-top: 1.5rem; margin-bottom: 0.5rem;">Threat Score</p>
+                        <div id="threatScore" class="threat-score"></div>
+                    </div>
+                    
+                    <div>
+                        <p style="color: #94a3b8; margin-bottom: 0.5rem;">Vulnerabilities Found</p>
+                        <div style="font-size: 2rem; font-weight: bold; color: #ef4444;" id="vulnCount"></div>
+                        
+                        <p style="color: #94a3b8; margin-top: 1.5rem; margin-bottom: 0.5rem;">Last Scanned</p>
+                        <div style="color: #e2e8f0;" id="scanTime"></div>
+                    </div>
+                </div>
+
+                <!-- Vulnerabilities -->
+                <div class="vulnerability-list" id="vulnerabilityList"></div>
+            </div>
+
+            <!-- Recommendations -->
+            <div class="recommendations-section" id="recommendationsSection"></div>
+        </div>
+
+        <!-- History Section -->
+        <div style="margin-top: 3rem;">
+            <button class="button secondary" onclick="loadScanHistory()"><span class="btn-icon">📜</span><span class="btn-text">History</span></button>
+            <button class="button secondary" onclick="loadScanHistory()">📜 Load History</button>
+            <table class="history-table" id="historyTable" style="display:none;">
+                <thead>
+                    <tr>
+                        <th>URL</th>
+                        <th>Threat Level</th>
+                        <th>Score</th>
+                        <th>Vulns</th>
+                        <th>Date</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="historyBody"></tbody>
+            </table>
+            <div id="noHistory" style="color: #94a3b8; margin-top: 1rem;">No scan history yet</div>
+        </div>
+    </div>
+
+    <!-- Detail Modal -->
+    <div id="detailModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeDetailModal()">&times;</span>
+            <div id="detailContent"></div>
+        </div>
+    </div>
+
+    <script>
+        // Construct API URL based on current location
+        // If on localhost:8000, use localhost:5001; if on 127.0.0.1:8000, use 127.0.0.1:5001
+        const API_BASE = `http://${window.location.hostname}:5001`;
+
+        async function scanWebsite() {
+            const url = document.getElementById('websiteUrl').value.trim();
+            
+            if (!url) {
+                showMessage('Please enter a website URL', 'error');
+                return;
+            }
+
+            // Show loading state
+            document.getElementById('scanBtnText').style.display = 'none';
+            document.getElementById('scanSpinner').style.display = 'inline-block';
+            document.getElementById('scanMessage').innerHTML = '';
+
+            try {
+                console.log('Scanning:', url);
+                console.log('API Base:', API_BASE);
+                
+                const response = await fetch(`${API_BASE}/api/scan-website`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url }),
+                    mode: 'cors'
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.log('Error response:', errorText);
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                }
+
+                const result = await response.json();
+                displayScanResult(result);
+                showMessage('✓ Website scanned successfully!', 'success');
+
+            } catch (error) {
+                console.error('Scan error:', error);
+                showMessage(`✗ Scan failed: ${error.message}`, 'error');
+            } finally {
+                document.getElementById('scanBtnText').style.display = 'inline';
+                document.getElementById('scanSpinner').style.display = 'none';
+            }
+        }
+
+        function displayScanResult(result) {
+            const threatLevels = {
+                'SAFE': 'threat-safe',
+                'LOW': 'threat-low',
+                'MEDIUM': 'threat-medium',
+                'HIGH': 'threat-high',
+                'CRITICAL': 'threat-critical'
+            };
+
+            const threatScoreColors = {
+                'SAFE': 'threat-score-low',
+                'LOW': 'threat-score-low',
+                'MEDIUM': 'threat-score-medium',
+                'HIGH': 'threat-score-high',
+                'CRITICAL': 'threat-score-high'
+            };
+
+            // Display results section
+            document.getElementById('resultsSection').style.display = 'block';
+
+            // Display statistics
+            const statsGrid = document.getElementById('statsGrid');
+            statsGrid.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-label">Threat Level</div>
+                    <div class="stat-value" style="color: ${getThreatColor(result.threat_level)}">${result.threat_level}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Threat Score</div>
+                    <div class="stat-value">${result.threat_score.toFixed(1)}/100</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Vulnerabilities</div>
+                    <div class="stat-value" style="color: #ef4444;">${result.vulnerabilities_found}</div>
+                </div>
+            `;
+
+            // Display URL
+            document.getElementById('resultUrl').textContent = result.url;
+
+            // Display threat badge
+            const badgeClass = threatLevels[result.threat_level] || 'threat-low';
+            document.getElementById('threatBadge').innerHTML = 
+                `<div class="threat-badge ${badgeClass}">${result.threat_level}</div>`;
+
+            // Display threat score
+            const scoreClass = threatScoreColors[result.threat_level] || 'threat-score-low';
+            document.getElementById('threatScore').className = `threat-score ${scoreClass}`;
+            document.getElementById('threatScore').textContent = result.threat_score.toFixed(1);
+
+            // Display vulnerability count
+            document.getElementById('vulnCount').textContent = result.vulnerabilities_found;
+
+            // Display scan time
+            const date = new Date(result.timestamp);
+            document.getElementById('scanTime').textContent = date.toLocaleString();
+
+            // Display vulnerabilities
+            const vulnList = document.getElementById('vulnerabilityList');
+            if (result.vulnerabilities.length > 0) {
+                vulnList.innerHTML = '<h4 style="color: #ef4444; margin-bottom: 1rem;">Found Vulnerabilities:</h4>' +
+                    result.vulnerabilities.map((vuln, idx) => `
+                        <div class="vulnerability-item ${vuln.severity.toLowerCase()}">
+                            <div class="vulnerability-type">${idx + 1}. ${vuln.type} [${vuln.severity}]</div>
+                            <div class="vulnerability-description">${vuln.description}</div>
+                            <div class="vulnerability-recommendation">💡 ${vuln.recommendation}</div>
+                        </div>
+                    `).join('');
+            } else {
+                vulnList.innerHTML = '<p style="color: #22c55e;">✓ No vulnerabilities detected!</p>';
+            }
+
+            // Display recommendations
+            const recSection = document.getElementById('recommendationsSection');
+            recSection.innerHTML = '<h3>🎯 Security Recommendations</h3>' +
+                result.recommendations.map(rec => `
+                    <div class="recommendation-item">${rec}</div>
+                `).join('');
+        }
+
+        function getThreatColor(level) {
+            const colors = {
+                'SAFE': '#22c55e',
+                'LOW': '#3b82f6',
+                'MEDIUM': '#f59e0b',
+                'HIGH': '#ef4444',
+                'CRITICAL': '#ff6b6b'
+            };
+            return colors[level] || '#3b82f6';
+        }
+
+        async function loadScanHistory() {
+            try {
+                const response = await fetch(`${API_BASE}/api/scan-history`);
+                const data = await response.json();
+
+                const tbody = document.getElementById('historyBody');
+                const table = document.getElementById('historyTable');
+                const noHistory = document.getElementById('noHistory');
+
+                if (data.scans.length === 0) {
+                    table.style.display = 'none';
+                    noHistory.style.display = 'block';
+                    return;
+                }
+
+                tbody.innerHTML = data.scans.map(scan => `
+                    <tr>
+                        <td style="color: #3b82f6; cursor: pointer;" onclick="viewScanDetails(${scan.id})">${scan.domain}</td>
+                        <td><span class="threat-badge threat-${scan.threat_level.toLowerCase()}">${scan.threat_level}</span></td>
+                        <td>${scan.threat_score.toFixed(1)}</td>
+                        <td>${scan.vulnerabilities}</td>
+                        <td>${new Date(scan.timestamp).toLocaleDateString()}</td>
+                        <td>
+                            <button class="button" style="padding: 0.5rem 1rem; font-size: 0.85rem;" onclick="viewScanDetails(${scan.id})">View</button>
+                        </td>
+                    </tr>
+                `).join('');
+
+                table.style.display = 'table';
+                noHistory.style.display = 'none';
+
+            } catch (error) {
+                showMessage(`Failed to load history: ${error.message}`, 'error');
+            }
+        }
+
+        async function viewScanDetails(scanId) {
+            try {
+                const response = await fetch(`${API_BASE}/api/scan/${scanId}`);
+                const details = await response.json();
+
+                const content = `
+                    <h2 style="color: #3b82f6; margin-bottom: 1rem;">${details.domain}</h2>
+                    <p><strong>URL:</strong> ${details.url}</p>
+                    <p><strong>Threat Level:</strong> <span class="threat-badge threat-${details.threat_level.toLowerCase()}">${details.threat_level}</span></p>
+                    <p><strong>Threat Score:</strong> ${details.threat_score.toFixed(1)}/100</p>
+                    <p><strong>Scanned:</strong> ${new Date(details.timestamp).toLocaleString()}</p>
+
+                    <h3 style="color: #ef4444; margin-top: 1.5rem; margin-bottom: 1rem;">Vulnerabilities (${details.vulnerabilities.length})</h3>
+                    ${details.vulnerabilities.length > 0 ? 
+                        details.vulnerabilities.map((v, i) => `
+                            <div class="vulnerability-item ${v.severity.toLowerCase()}">
+                                <div class="vulnerability-type">${i + 1}. ${v.type} [${v.severity}]</div>
+                                <div class="vulnerability-description">${v.description}</div>
+                                <div class="vulnerability-recommendation">💡 ${v.recommendation}</div>
+                            </div>
+                        `).join('') 
+                        : '<p style="color: #22c55e;">No vulnerabilities found</p>'
+                    }
+
+                    <h3 style="color: #06b6d4; margin-top: 1.5rem; margin-bottom: 1rem;">Recommendations</h3>
+                    ${details.recommendations.map(r => `<p>✓ ${r}</p>`).join('')}
+                `;
+
+                document.getElementById('detailContent').innerHTML = content;
+                document.getElementById('detailModal').classList.add('show');
+
+            } catch (error) {
+                showMessage(`Failed to load details: ${error.message}`, 'error');
+            }
+        }
+
+        function closeDetailModal() {
+            document.getElementById('detailModal').classList.remove('show');
+        }
+
+        function showMessage(text, type) {
+            const container = document.getElementById('scanMessage');
+            const className = type === 'error' ? 'error-message' : 'success-message';
+            container.innerHTML = `<div class="${className}">${text}</div>`;
+            
+            setTimeout(() => {
+                container.innerHTML = '';
+            }, 5000);
+        }
+
+        // Set active nav link
+        window.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.nav-menu a').forEach(link => {
+                link.classList.remove('active');
+                if (link.textContent.includes('Website Scanner')) {
+                    link.classList.add('active');
+                }
+            });
+        });
+
+        // Close modal on outside click
+        window.onclick = function(event) {
+            const modal = document.getElementById('detailModal');
+            if (event.target === modal) {
+                modal.classList.remove('show');
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Threat History - Threat Detection</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #000000;
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 0;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.03) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.02) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 58, 138, 0.9) 100%);
+            border-bottom: 1px solid rgba(59, 130, 246, 0.3);
+            backdrop-filter: blur(10px);
+            padding: 0 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .nav-content {
+            max-width: 1600px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+        }
+
+        .logo {
+            font-size: 1.3em;
+            font-weight: 700;
+            background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            cursor: pointer;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 25px;
+            list-style: none;
+        }
+
+        .nav-menu a {
+            color: #94a3b8;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            padding: 8px 12px;
+            border-radius: 6px;
+        }
+
+        .nav-menu a:hover,
+        .nav-menu a.active {
+            color: #06b6d4;
+            background: rgba(6, 182, 212, 0.1);
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header {
+            margin-bottom: 40px;
+            animation: slideDown 0.6s ease;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #3b82f6 0%, #22c55e 50%, #06b6d4 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 700;
+        }
+
+        .filters {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+            background: linear-gradient(135deg, rgba(30, 58, 138, 0.6) 0%, rgba(15, 23, 42, 0.8) 100%);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            backdrop-filter: blur(20px);
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .filter-group label {
+            color: #94a3b8;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+
+        .filter-group input,
+        .filter-group select {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 8px;
+            padding: 10px;
+            color: #e0e0e0;
+            font-size: 0.95em;
+        }
+
+        .filter-group input:focus,
+        .filter-group select:focus {
+            outline: none;
+            border-color: #06b6d4;
+            box-shadow: 0 0 10px rgba(6, 182, 212, 0.2);
+        }
+
+        .threats-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: linear-gradient(135deg, rgba(30, 58, 138, 0.6) 0%, rgba(15, 23, 42, 0.8) 100%);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 12px;
+            backdrop-filter: blur(20px);
+            overflow: hidden;
+        }
+
+        .threats-table thead {
+            background: rgba(59, 130, 246, 0.2);
+        }
+
+        .threats-table th {
+            padding: 15px;
+            text-align: left;
+            color: #06b6d4;
+            font-weight: 600;
+            border-bottom: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .threats-table td {
+            padding: 15px;
+            border-bottom: 1px solid rgba(59, 130, 246, 0.2);
+        }
+
+        .threats-table tr:hover {
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        .threat-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .threat-badge.critical {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+
+        .threat-badge.high {
+            background: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+        }
+
+        .threat-badge.medium {
+            background: rgba(59, 130, 246, 0.2);
+            color: #3b82f6;
+        }
+
+        .threat-badge.low {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .status-badge.active {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+
+        .status-badge.blocked {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+        }
+
+        .status-badge.resolved {
+            background: rgba(6, 182, 212, 0.2);
+            color: #06b6d4;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 30px;
+        }
+
+        .pagination button {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .pagination button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .pagination button.active {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .filters {
+                grid-template-columns: 1fr;
+            }
+
+            .threats-table {
+                font-size: 0.9em;
+            }
+
+            .threats-table th,
+            .threats-table td {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-content">
+            <div class="logo">🛡️ ThreatDetect</div>
+            <ul class="nav-menu">
+                <li><a href="index.html">📊 Dashboard</a></li>
+                <li><a href="analytics.html">📈 Analytics</a></li>
+                <li><a href="reports.html">📧 Reports</a></li>
+                <li><a href="threats.html" class="active">⚠️ Threats</a></li>
+                <li><a href="scanner.html">🌐 Scanner</a></li>
+                <li><a href="pentest.html">🔓 Pen Test</a></li>
+                <li><a href="api.html">🔌 API</a></li>
+                <li><a href="admin.html">⚙️ Admin</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="header">
+            <h1>⚠️ Threat History</h1>
+            <p>Complete log of detected threats and security events</p>
+        </div>
+
+        <div class="filters">
+            <div class="filter-group">
+                <label>Date Range</label>
+                <input type="date" value="2024-12-03">
+            </div>
+            <div class="filter-group">
+                <label>Threat Level</label>
+                <select>
+                    <option>All Levels</option>
+                    <option>Critical</option>
+                    <option>High</option>
+                    <option>Medium</option>
+                    <option>Low</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Status</label>
+                <select>
+                    <option>All Status</option>
+                    <option>Active</option>
+                    <option>Blocked</option>
+                    <option>Resolved</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Search</label>
+                <input type="text" placeholder="Search IP, port, threat type...">
+            </div>
+        </div>
+
+        <table class="threats-table">
+            <thead>
+                <tr>
+                    <th>Time</th>
+                    <th>Source IP</th>
+                    <th>Threat Type</th>
+                    <th>Severity</th>
+                    <th>Confidence</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>2024-12-03 14:32:15</td>
+                    <td>192.168.1.105</td>
+                    <td>Port Scan</td>
+                    <td><span class="threat-badge high">HIGH</span></td>
+                    <td>98.5%</td>
+                    <td><span class="status-badge blocked">Blocked</span></td>
+                    <td style="color: #06b6d4; cursor: pointer;">View Details</td>
+                </tr>
+                <tr>
+                    <td>2024-12-03 14:28:42</td>
+                    <td>10.0.0.52</td>
+                    <td>DDoS Attack</td>
+                    <td><span class="threat-badge critical">CRITICAL</span></td>
+                    <td>99.9%</td>
+                    <td><span class="status-badge blocked">Blocked</span></td>
+                    <td style="color: #06b6d4; cursor: pointer;">View Details</td>
+                </tr>
+                <tr>
+                    <td>2024-12-03 14:15:08</td>
+                    <td>172.16.0.88</td>
+                    <td>SQL Injection</td>
+                    <td><span class="threat-badge critical">CRITICAL</span></td>
+                    <td>99.7%</td>
+                    <td><span class="status-badge resolved">Resolved</span></td>
+                    <td style="color: #06b6d4; cursor: pointer;">View Details</td>
+                </tr>
+                <tr>
+                    <td>2024-12-03 13:45:33</td>
+                    <td>203.0.113.42</td>
+                    <td>Brute Force</td>
+                    <td><span class="threat-badge high">HIGH</span></td>
+                    <td>97.2%</td>
+                    <td><span class="status-badge blocked">Blocked</span></td>
+                    <td style="color: #06b6d4; cursor: pointer;">View Details</td>
+                </tr>
+                <tr>
+                    <td>2024-12-03 13:22:19</td>
+                    <td>198.51.100.15</td>
+                    <td>XSS Attempt</td>
+                    <td><span class="threat-badge medium">MEDIUM</span></td>
+                    <td>95.1%</td>
+                    <td><span class="status-badge resolved">Resolved</span></td>
+                    <td style="color: #06b6d4; cursor: pointer;">View Details</td>
+                </tr>
+                <tr>
+                    <td>2024-12-03 12:56:47</td>
+                    <td>192.0.2.30</td>
+                    <td>Malware Detection</td>
+                    <td><span class="threat-badge critical">CRITICAL</span></td>
+                    <td>99.8%</td>
+                    <td><span class="status-badge blocked">Blocked</span></td>
+                    <td style="color: #06b6d4; cursor: pointer;">View Details</td>
+                </tr>
+                <tr>
+                    <td>2024-12-03 12:30:15</td>
+                    <td>10.20.30.40</td>
+                    <td>Privilege Escalation</td>
+                    <td><span class="threat-badge high">HIGH</span></td>
+                    <td>96.4%</td>
+                    <td><span class="status-badge active">Active</span></td>
+                    <td style="color: #06b6d4; cursor: pointer;">View Details</td>
+                </tr>
+                <tr>
+                    <td>2024-12-03 12:05:22</td>
+                    <td>172.20.10.5</td>
+                    <td>Abnormal Traffic</td>
+                    <td><span class="threat-badge medium">MEDIUM</span></td>
+                    <td>92.3%</td>
+                    <td><span class="status-badge resolved">Resolved</span></td>
+                    <td style="color: #06b6d4; cursor: pointer;">View Details</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="pagination">
+            <button class="active">1</button>
+            <button>2</button>
+            <button>3</button>
+            <button>4</button>
+            <button>Next →</button>
+        </div>
+    </div>
+</body>
+</html>

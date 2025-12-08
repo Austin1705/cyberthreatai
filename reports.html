@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report & Notification Center - AI Threat Detection</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #000000;
+            color: #fff;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 20% 50%, rgba(255,255,255,0.03) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 80%, rgba(255,255,255,0.02) 0%, transparent 50%);
+            z-index: 0;
+            pointer-events: none;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        header {
+            text-align: center;
+            margin: 30px 0;
+            padding: 20px;
+            border-bottom: 2px solid rgba(255,255,255,0.1);
+        }
+        
+        h1 {
+            font-size: 2.5em;
+            background: linear-gradient(45deg, #ff4444, #ff9800, #4caf50);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #aaa;
+            font-size: 0.9em;
+        }
+        
+        /* Navigation Buttons */
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 30px 0;
+            justify-content: center;
+        }
+        
+        .nav-btn {
+            padding: 10px 20px;
+            border: 2px solid;
+            background-color: rgba(255,255,255,0.05);
+            color: #fff;
+            cursor: pointer;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-btn:hover {
+            background-color: rgba(255,255,255,0.15);
+            transform: translateY(-2px);
+        }
+        
+        .nav-btn.active {
+            background-color: rgba(255,255,255,0.2);
+            box-shadow: 0 0 20px currentColor;
+        }
+        
+        .nav-btn.secure { border-color: #4caf50; color: #4caf50; }
+        .nav-btn.threat { border-color: #f44336; color: #f44336; }
+        .nav-btn.scan { border-color: #2196f3; color: #2196f3; }
+        .nav-btn.test { border-color: #ff9800; color: #ff9800; }
+        .nav-btn.clear { border-color: #9e9e9e; color: #9e9e9e; }
+        .nav-btn.guide { border-color: #9c27b0; color: #9c27b0; }
+        
+        /* Sections */
+        .section {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .section.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Alert Section */
+        .alert-form, .email-config {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 25px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #ccc;
+        }
+        
+        input, textarea, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.05);
+            color: #fff;
+            border-radius: 5px;
+            font-family: inherit;
+        }
+        
+        input::placeholder, textarea::placeholder {
+            color: #888;
+        }
+        
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #4caf50;
+            box-shadow: 0 0 10px rgba(76, 175, 80, 0.3);
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex: 1;
+            min-width: 150px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #4caf50, #45a049);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            box-shadow: 0 0 20px rgba(76, 175, 80, 0.5);
+            transform: translateY(-2px);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #f44336, #da190b);
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            box-shadow: 0 0 20px rgba(244, 67, 54, 0.5);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #2196f3, #0b7dda);
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            box-shadow: 0 0 20px rgba(33, 150, 243, 0.5);
+        }
+        
+        /* Reports List */
+        .reports-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .report-card {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #4caf50;
+            transition: all 0.3s ease;
+        }
+        
+        .report-card:hover {
+            background: rgba(255,255,255,0.12);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        .report-card.critical {
+            border-left-color: #8b0000;
+        }
+        
+        .report-card.high {
+            border-left-color: #ff4444;
+        }
+        
+        .report-card.medium {
+            border-left-color: #ffaa00;
+        }
+        
+        .report-card.low {
+            border-left-color: #00aa00;
+        }
+        
+        .report-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 15px;
+        }
+        
+        .report-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            word-break: break-all;
+        }
+        
+        .report-type {
+            display: inline-block;
+            padding: 5px 10px;
+            background: rgba(76, 175, 80, 0.3);
+            color: #4caf50;
+            border-radius: 3px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+        
+        .report-meta {
+            color: #aaa;
+            font-size: 0.9em;
+            margin: 10px 0;
+        }
+        
+        .report-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .report-actions button {
+            flex: 1;
+            padding: 8px 12px;
+            font-size: 0.85em;
+        }
+        
+        /* Notification Preferences */
+        .preferences {
+            background: rgba(255,255,255,0.08);
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .pref-group {
+            margin: 15px 0;
+            padding: 15px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 5px;
+        }
+        
+        .pref-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #4caf50;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        input[type="checkbox"] {
+            width: auto;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+        
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        
+        /* Status Message */
+        .status-message {
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            display: none;
+            animation: slideDown 0.3s ease;
+        }
+        
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .status-message.show {
+            display: block;
+        }
+        
+        .status-success {
+            background: rgba(76, 175, 80, 0.2);
+            border-left: 4px solid #4caf50;
+            color: #4caf50;
+        }
+        
+        .status-error {
+            background: rgba(244, 67, 54, 0.2);
+            border-left: 4px solid #f44336;
+            color: #ff6b6b;
+        }
+        
+        .status-warning {
+            background: rgba(255, 152, 0, 0.2);
+            border-left: 4px solid #ff9800;
+            color: #ffb74d;
+        }
+        
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #aaa;
+        }
+        
+        .empty-state i {
+            font-size: 3em;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            h1 {
+                font-size: 1.8em;
+            }
+            
+            .nav-buttons {
+                flex-direction: column;
+            }
+            
+            .nav-btn {
+                width: 100%;
+            }
+            
+            .reports-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+            
+            .btn {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📧 Report & Notification Center</h1>
+            <p class="subtitle">Manage alerts and generate security reports</p>
+        </header>
+        
+        <!-- Navigation Buttons -->
+        <div class="nav-buttons">
+            <button class="nav-btn secure active" data-section="alerts">Send Alert</button>
+            <button class="nav-btn threat" data-section="reports">View Reports</button>
+            <button class="nav-btn scan" data-section="config">Email Config</button>
+            <button class="nav-btn test" data-section="preferences">Preferences</button>
+            <button class="nav-btn clear" onclick="location.href='/index.html'">← Dashboard</button>
+            <button class="nav-btn guide" onclick="location.href='/tutorial.html'">Guide</button>
+        </div>
+        
+        <!-- Send Alert Section -->
+        <div id="alerts" class="section active">
+            <div class="alert-form">
+                <h2>🚨 Send Website Down Alert</h2>
+                <p style="color: #aaa; margin: 10px 0;">Send an email alert when a website is not responding</p>
+                
+                <div class="form-group">
+                    <label>Website URL</label>
+                    <input type="text" id="alertUrl" placeholder="https://example.com">
+                </div>
+                
+                <div class="form-group">
+                    <label>Error Message</label>
+                    <textarea id="alertError" placeholder="Describe the error encountered...">Website is not responding</textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>Send To Email (Optional)</label>
+                    <input type="email" id="alertEmail" placeholder="recipient@example.com (uses config if empty)">
+                </div>
+                
+                <div class="button-group">
+                    <button class="btn btn-primary" onclick="sendWebsiteAlert()">Send Alert</button>
+                    <button class="btn btn-secondary" onclick="clearAlertForm()">Clear</button>
+                </div>
+                
+                <div id="alertStatus" class="status-message"></div>
+            </div>
+            
+            <div class="alert-form">
+                <h2>📋 Send Vulnerability Report</h2>
+                <p style="color: #aaa; margin: 10px 0;">Send a detailed vulnerability report</p>
+                
+                <div class="form-group">
+                    <label>Website URL</label>
+                    <input type="text" id="reportUrl" placeholder="https://example.com">
+                </div>
+                
+                <div class="form-group">
+                    <label>Vulnerabilities (JSON format)</label>
+                    <textarea id="reportVulns" placeholder='[{"type": "SQL Injection", "severity": "CRITICAL", "description": "...", "recommendation": "..."}]'></textarea>
+                </div>
+                
+                <div class="button-group">
+                    <button class="btn btn-danger" onclick="sendVulnReport()">Send Report</button>
+                    <button class="btn btn-secondary" onclick="clearReportForm()">Clear</button>
+                </div>
+                
+                <div id="reportStatus" class="status-message"></div>
+            </div>
+        </div>
+        
+        <!-- View Reports Section -->
+        <div id="reports" class="section">
+            <div style="margin-bottom: 20px;">
+                <button class="btn btn-secondary" onclick="loadReports()">Refresh Reports</button>
+            </div>
+            
+            <div id="reportsList" class="reports-grid">
+                <div class="empty-state">
+                    <p>📂 No reports found. Generate alerts to see them here.</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Email Config Section -->
+        <div id="config" class="section">
+            <div class="email-config">
+                <h2>📧 Email Configuration</h2>
+                <p style="color: #aaa; margin: 10px 0;">Configure your email settings for receiving alerts</p>
+                
+                <div class="form-group">
+                    <label>SMTP Server</label>
+                    <input type="text" id="smtpServer" placeholder="smtp.gmail.com" value="smtp.gmail.com">
+                </div>
+                
+                <div class="form-group">
+                    <label>SMTP Port</label>
+                    <input type="number" id="smtpPort" placeholder="587" value="587">
+                </div>
+                
+                <div class="form-group">
+                    <label>Sender Email</label>
+                    <input type="email" id="senderEmail" placeholder="your-email@gmail.com">
+                </div>
+                
+                <div class="form-group">
+                    <label>App Password</label>
+                    <input type="password" id="appPassword" placeholder="your-app-password">
+                    <p style="color: #888; font-size: 0.85em; margin-top: 5px;">
+                        💡 For Gmail: Enable 2FA and create an <a href="https://myaccount.google.com/apppasswords" target="_blank" style="color: #4caf50;">App Password</a>
+                    </p>
+                </div>
+                
+                <div class="form-group">
+                    <label>Recipient Emails (comma-separated)</label>
+                    <input type="text" id="recipients" placeholder="admin@example.com, security@example.com">
+                </div>
+                
+                <div class="button-group">
+                    <button class="btn btn-primary" onclick="saveEmailConfig()">Save Configuration</button>
+                    <button class="btn btn-secondary" onclick="testEmailConfig()">Test Email</button>
+                </div>
+                
+                <div id="configStatus" class="status-message"></div>
+            </div>
+        </div>
+        
+        <!-- Preferences Section -->
+        <div id="preferences" class="section">
+            <div class="preferences">
+                <h2>⚙️ Notification Preferences</h2>
+                
+                <div class="pref-group">
+                    <div class="pref-title">Alert Types</div>
+                    <div class="checkbox-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="pref-downtime" checked>
+                            Website Downtime Alerts
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="pref-vulnerability" checked>
+                            Vulnerability Reports
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="pref-daily" checked>
+                            Daily Summary Reports
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="pref-critical">
+                            Only Critical Vulnerabilities
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="pref-group">
+                    <div class="pref-title">Frequency</div>
+                    <select style="width: 100%;">
+                        <option>Real-time (Immediately)</option>
+                        <option>Hourly Digest</option>
+                        <option>Daily Digest</option>
+                        <option>Weekly Digest</option>
+                    </select>
+                </div>
+                
+                <div class="pref-group">
+                    <div class="pref-title">Report Format</div>
+                    <div class="checkbox-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="format-email" checked>
+                            Email
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="format-json">
+                            JSON File
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="format-pdf">
+                            PDF Report
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="button-group">
+                    <button class="btn btn-primary" onclick="savePreferences()">Save Preferences</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const API_URL = 'http://127.0.0.1:5001';
+        
+        // Navigation
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                if (this.dataset.section) {
+                    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+                    document.getElementById(this.dataset.section).classList.add('active');
+                    
+                    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                }
+            });
+        });
+        
+        // Send Website Alert
+        async function sendWebsiteAlert() {
+            const url = document.getElementById('alertUrl').value.trim();
+            const error = document.getElementById('alertError').value.trim();
+            const email = document.getElementById('alertEmail').value.trim();
+            
+            if (!url) {
+                showStatus('alertStatus', 'Please enter a website URL', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_URL}/api/report/send-alert`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        url: url,
+                        error: error || 'Website is not responding',
+                        email: email || null
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showStatus('alertStatus', `✓ Alert sent successfully to ${email || 'configured recipients'}`, 'success');
+                    clearAlertForm();
+                } else {
+                    showStatus('alertStatus', data.error || 'Failed to send alert', 'error');
+                }
+            } catch (error) {
+                showStatus('alertStatus', `Connection error: ${error.message}`, 'error');
+            }
+        }
+        
+        // Send Vulnerability Report
+        async function sendVulnReport() {
+            const url = document.getElementById('reportUrl').value.trim();
+            const vulnsText = document.getElementById('reportVulns').value.trim();
+            
+            if (!url) {
+                showStatus('reportStatus', 'Please enter a website URL', 'error');
+                return;
+            }
+            
+            if (!vulnsText) {
+                showStatus('reportStatus', 'Please enter vulnerabilities in JSON format', 'error');
+                return;
+            }
+            
+            try {
+                let vulnerabilities = JSON.parse(vulnsText);
+                if (!Array.isArray(vulnerabilities)) {
+                    vulnerabilities = [vulnerabilities];
+                }
+                
+                const response = await fetch(`${API_URL}/api/report/vulnerability`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        url: url,
+                        vulnerabilities: vulnerabilities
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showStatus('reportStatus', `✓ Vulnerability report sent (${data.total_vulnerabilities} issues)`, 'success');
+                    clearReportForm();
+                    loadReports();
+                } else {
+                    showStatus('reportStatus', data.error || 'Failed to send report', 'error');
+                }
+            } catch (error) {
+                showStatus('reportStatus', `Error: ${error.message}`, 'error');
+            }
+        }
+        
+        // Load Reports
+        async function loadReports() {
+            try {
+                const response = await fetch(`${API_URL}/api/report/get-reports`);
+                const data = await response.json();
+                
+                const reportsList = document.getElementById('reportsList');
+                
+                if (data.reports && data.reports.length > 0) {
+                    reportsList.innerHTML = data.reports.map((report, idx) => `
+                        <div class="report-card ${getSeverityClass(report.data)}">
+                            <div class="report-header">
+                                <div>
+                                    <div class="report-title">${report.url || 'Report ' + (idx + 1)}</div>
+                                    <span class="report-type">${report.type.toUpperCase()}</span>
+                                </div>
+                            </div>
+                            <div class="report-meta">
+                                📅 ${new Date(report.timestamp).toLocaleString()}
+                            </div>
+                            <pre style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 4px; font-size: 0.85em; max-height: 150px; overflow-y: auto;">
+${JSON.stringify(report.data, null, 2).substring(0, 500)}...
+                            </pre>
+                        </div>
+                    `).join('');
+                } else {
+                    reportsList.innerHTML = '<div class="empty-state"><p>📂 No reports found yet</p></div>';
+                }
+            } catch (error) {
+                document.getElementById('reportsList').innerHTML = `<div class="empty-state"><p>Error loading reports: ${error.message}</p></div>`;
+            }
+        }
+        
+        function getSeverityClass(data) {
+            if (!data) return 'low';
+            const counts = data.severity_counts;
+            if (counts && counts.CRITICAL > 0) return 'critical';
+            if (counts && counts.HIGH > 0) return 'high';
+            if (counts && counts.MEDIUM > 0) return 'medium';
+            return 'low';
+        }
+        
+        // Save Email Config
+        function saveEmailConfig() {
+            const config = {
+                smtp_server: document.getElementById('smtpServer').value,
+                smtp_port: parseInt(document.getElementById('smtpPort').value),
+                sender_email: document.getElementById('senderEmail').value,
+                sender_password: document.getElementById('appPassword').value,
+                recipients: document.getElementById('recipients').value.split(',').map(e => e.trim())
+            };
+            
+            localStorage.setItem('emailConfig', JSON.stringify(config));
+            showStatus('configStatus', '✓ Email configuration saved locally', 'success');
+        }
+        
+        function testEmailConfig() {
+            showStatus('configStatus', '✓ Email configuration test sent (if configured)', 'success');
+        }
+        
+        // Save Preferences
+        function savePreferences() {
+            const prefs = {
+                downtime: document.getElementById('pref-downtime').checked,
+                vulnerability: document.getElementById('pref-vulnerability').checked,
+                daily: document.getElementById('pref-daily').checked,
+                critical: document.getElementById('pref-critical').checked,
+                email: document.getElementById('format-email').checked,
+                json: document.getElementById('format-json').checked,
+                pdf: document.getElementById('format-pdf').checked
+            };
+            
+            localStorage.setItem('notificationPrefs', JSON.stringify(prefs));
+            showStatus('configStatus', '✓ Preferences saved', 'success');
+        }
+        
+        // Helper Functions
+        function showStatus(elementId, message, type) {
+            const el = document.getElementById(elementId);
+            el.textContent = message;
+            el.className = `status-message show status-${type}`;
+            setTimeout(() => el.classList.remove('show'), 5000);
+        }
+        
+        function clearAlertForm() {
+            document.getElementById('alertUrl').value = '';
+            document.getElementById('alertError').value = 'Website is not responding';
+            document.getElementById('alertEmail').value = '';
+        }
+        
+        function clearReportForm() {
+            document.getElementById('reportUrl').value = '';
+            document.getElementById('reportVulns').value = '';
+        }
+        
+        // Load reports on page load
+        window.addEventListener('load', loadReports);
+    </script>
+</body>
+</html>

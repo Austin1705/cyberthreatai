@@ -1,0 +1,266 @@
+╔════════════════════════════════════════════════════════════════════════════╗
+║                                                                            ║
+║           📧 REPORT & NOTIFICATION SYSTEM - QUICK REFERENCE                ║
+║                                                                            ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📊 DASHBOARD ACCESS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  🌐 http://localhost:8000/reports.html
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⚙️ SETUP (First Time)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  1. 📧 Go to Email Config tab
+  2. 🔑 Get App Password from Gmail:
+     → https://myaccount.google.com/apppasswords
+  3. ⚙️ Fill in settings:
+     SMTP: smtp.gmail.com
+     Port: 587
+     Email: your-email@gmail.com
+     Password: 16-char App Password
+  4. 💾 Click "Save Configuration"
+  5. ✅ Click "Test Email"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🚨 SEND ALERT (When website is down)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Go to: /reports.html → "Send Alert" tab
+
+  1. Enter URL: https://example.com
+  2. Enter Error: Connection timeout
+  3. Click: Send Alert
+  4. ✉️ Email sent within 30 seconds
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📋 SEND REPORT (When vulnerabilities found)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Go to: /reports.html → "Send Alert" tab (second form)
+
+  1. Enter URL
+  2. Paste JSON vulnerabilities:
+     [{
+       "type": "SQL Injection",
+       "severity": "CRITICAL",
+       "description": "...",
+       "recommendation": "..."
+     }]
+  3. Click: Send Report
+  4. ✉️ Detailed report emailed
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📂 VIEW REPORTS (See all alerts & reports)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Go to: /reports.html → "View Reports" tab
+
+  • See all saved alerts
+  • Filter by type and date
+  • View severity indicators
+  • Download as JSON
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔗 API ENDPOINTS (For programmatic use)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Send Website Down Alert:
+  ┌─────────────────────────────────────────────────────────────────┐
+  │ POST /api/report/send-alert                                     │
+  │ {                                                               │
+  │   "url": "https://example.com",                                │
+  │   "error": "Connection timeout",                               │
+  │   "email": "admin@example.com"  // optional                    │
+  │ }                                                               │
+  └─────────────────────────────────────────────────────────────────┘
+
+  Send Vulnerability Report:
+  ┌─────────────────────────────────────────────────────────────────┐
+  │ POST /api/report/vulnerability                                  │
+  │ {                                                               │
+  │   "url": "https://example.com",                                │
+  │   "vulnerabilities": [{...}]                                   │
+  │ }                                                               │
+  └─────────────────────────────────────────────────────────────────┘
+
+  Get All Reports:
+  ┌─────────────────────────────────────────────────────────────────┐
+  │ GET /api/report/get-reports                                     │
+  └─────────────────────────────────────────────────────────────────┘
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+💻 PYTHON USAGE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  from notification_system import ReportNotificationSystem
+
+  notifier = ReportNotificationSystem()
+
+  # Send website down alert
+  notifier.send_website_down_alert(
+      url='https://example.com',
+      error_message='Connection timeout',
+      contact_email='admin@example.com'
+  )
+
+  # Send vulnerability report
+  notifier.send_vulnerability_report(
+      url='https://example.com',
+      vulnerabilities=[{...}],
+      severity_counts={...}
+  )
+
+  # Get all reports
+  reports = notifier.get_all_reports()
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🧪 TESTING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Run test suite:
+  $ python test_notification_system.py
+
+  This will:
+  ✓ Check API is running
+  ✓ Send test alert
+  ✓ Send test report
+  ✓ Retrieve all reports
+  ✓ Check local storage
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📁 FILE LOCATIONS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  notification_system.py          ← Main module
+  email_config.json               ← Your email settings
+  email_config_sample.json        ← Template
+  reports.html                    ← Dashboard UI
+  test_notification_system.py     ← Test suite
+  reports/                        ← Saved reports directory
+  NOTIFICATION_SYSTEM.md          ← Full documentation
+  SETUP_NOTIFICATIONS.md          ← Setup guide
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🚨 SEVERITY LEVELS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  🔴 CRITICAL   → Fix immediately (0-24 hours)
+  🟠 HIGH       → Fix ASAP (1-3 days)
+  🟡 MEDIUM     → Schedule fix (1-2 weeks)
+  🟢 LOW        → Nice to fix (planning stage)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⚡ EMAIL PROVIDERS SUPPORTED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Gmail (Recommended)       Office 365          Custom SMTP
+  ─────────────────────────────────────────────────────────
+  smtp.gmail.com            smtp.office365.com  mail.yourserver.com
+  Port: 587                 Port: 587           Port: 25/465/587
+  App Password (16 chars)   Password            Your password
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+❓ QUICK TROUBLESHOOT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Email not sending?
+  → Check Gmail App Password (not regular password)
+  → Ensure 2FA is enabled
+  → Try clicking "Test Email" button
+
+  API not found?
+  → Check if API server is running (port 5001)
+  → Check server console for errors
+
+  Reports not saving?
+  → Check if "reports/" directory exists
+  → Check file permissions
+  → Check available disk space
+
+  Can't access dashboard?
+  → Check frontend server is running (port 8000)
+  → Try http://localhost:8000/reports.html
+  → Check browser console for errors
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📚 DOCUMENTATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Full API Docs:        NOTIFICATION_SYSTEM.md
+  Setup Guide:          SETUP_NOTIFICATIONS.md
+  This Quick Ref:       REPORT_NOTIFICATION_QUICK_REF.txt
+  Summary:              REPORT_NOTIFICATION_SUMMARY.md
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎯 COMMON WORKFLOWS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Workflow 1: Manual Alert
+  ───────────────────────────
+  1. Website goes down
+  2. Go to /reports.html
+  3. Click "Send Alert"
+  4. Enter URL + error
+  5. Click send
+  6. Email received in 30 seconds
+
+  Workflow 2: Auto Alert from Code
+  ────────────────────────────────
+  1. Integrate in your monitoring script
+  2. Call API endpoint /api/report/send-alert
+  3. Email sent automatically when triggered
+  4. Reports visible in dashboard
+
+  Workflow 3: Compliance Report
+  ────────────────────────────
+  1. Run security scan
+  2. Get list of vulnerabilities
+  3. Send via /api/report/vulnerability
+  4. Email sent with severity breakdown
+  5. Download JSON for compliance
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✨ FEATURES AT A GLANCE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  ✓ Website down alerts with instant email
+  ✓ Detailed vulnerability reports with recommendations
+  ✓ Support for Gmail, Office 365, custom SMTP
+  ✓ Local JSON report storage for audit trail
+  ✓ Beautiful dashboard for managing reports
+  ✓ API endpoints for programmatic access
+  ✓ Severity levels and color-coded alerts
+  ✓ Multi-recipient support
+  ✓ PDF export capability
+  ✓ Fully integrated with threat detection system
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎉 YOU'RE READY TO GO!
+
+1. Configure email: /reports.html → Email Config
+2. Send test alert: /reports.html → Send Alert
+3. View reports: /reports.html → View Reports
+4. Integrate API: Use endpoints in your code
+5. Enjoy instant notifications! 🚀
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
